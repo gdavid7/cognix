@@ -26,6 +26,20 @@ Two texts can be semantically unrelated but cognitively similar:
 | Kicking a ball across a field | Stomping on a brake pedal | Low | High (same motor cortex activation) |
 | Vast empty desert | Open ocean, no land in sight | Moderate | High (same spatial scene processing) |
 
+## Real-world implications
+
+**Search and retrieval** — Find content by how it feels to process, not just what it's about. "Find me articles that are as cognitively demanding as this legal brief" or "find video clips with a similar attentional profile to this one."
+
+**Content accessibility** — Flag content that will be processed similarly to known-difficult material. If a patient information leaflet triggers the same brain pattern as a dense legal contract, it's probably too complex for its audience.
+
+**Education** — Match learning materials to a student's cognitive level. Two explanations of the same concept can have identical semantic content but wildly different processing demands. Cognix could quantify that difference.
+
+**Mental health and media** — Identify content with high emotional arousal signatures without relying on keyword matching. A passage about war and a passage about a medical diagnosis might trigger the same distress pattern — semantic filters miss this, brain-grounded embeddings wouldn't.
+
+**Recommendation systems** — Recommend content based on cognitive engagement patterns rather than topic. "You were deeply engaged by this thriller — here's a medical drama with a similar suspense-processing profile" instead of "here's another thriller."
+
+**AI alignment research** — Compare how language models represent text vs. how the human brain processes it. Cognix embeddings could serve as a human-grounded reference point for evaluating whether model representations are becoming more or less brain-like.
+
 ## Current status
 
 **Phase 1: Validation experiment.** Testing whether brain-predicted similarity actually diverges from standard semantic similarity on 100 curated text pairs. If correlation is < 0.8, the hypothesis holds and we proceed to build the full system.
