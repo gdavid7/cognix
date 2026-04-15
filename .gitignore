@@ -6,11 +6,9 @@ build/
 .eggs/
 *.egg
 
-# Artifacts (large cached vectors, checkpoints)
-artifacts/cached_vectors/*.npy
-artifacts/cached_vectors/*.h5
-artifacts/checkpoints/*.pt
-artifacts/checkpoints/*.pth
+# Cached vectors and model checkpoints (large, belong on Google Drive)
+artifacts/cached_vectors/
+artifacts/checkpoints/
 
 # TRIBE v2 model cache
 cache/
