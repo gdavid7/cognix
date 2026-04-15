@@ -1,19 +1,27 @@
 # Cognix
 
-Brain-grounded embedding system where similarity means "processed similarly by the human brain" — not just "means the same thing."
+A cognitive measurement layer for content. Not "what does this text mean?" but "how does the brain process it?"
 
-Standard embedding models (sentence-transformers, CLIP) capture **semantic similarity**. Cognix captures **cognitive similarity** by routing text through [Meta's TRIBE v2](https://github.com/facebookresearch/tribev2), a model that predicts fMRI brain responses from text, audio, and video.
+Standard embeddings tell you two texts are about the same topic. Cognix tells you they demand the same cognitive effort, trigger the same emotional response, or activate the same motor circuits — even if they're about completely different things.
 
 ## How it works
 
 ```
 text → TRIBE v2 → predicted brain response (T × 20,484 cortical vertices)
-     → temporal mean pooling → brain fingerprint (20,484-d)
-     → learned projection → Cognix embedding (512-d)
-     → cosine similarity
+     → region-based decomposition → cognitive profile
 ```
 
-TRIBE v2 internally converts text to speech, extracts word-level timestamps, runs LLaMA 3.2-3B for language features, and maps those through an 8-layer transformer (trained on 1,000+ hours of real fMRI data from 720+ subjects) onto the cortical surface.
+```json
+{
+  "cognitive_load": 0.82,
+  "emotional_intensity": 0.34,
+  "motor_engagement": 0.91,
+  "spatial_processing": 0.15,
+  "embedding": [512-d vector]
+}
+```
+
+Built on [Meta's TRIBE v2](https://github.com/facebookresearch/tribev2), which predicts fMRI brain responses from text, audio, and video. TRIBE's 20,484 output vertices map to a standard brain atlas, so each vertex belongs to a known brain region. Cognix decomposes this into interpretable cognitive axes — not one opaque number, but separate measurements for how the brain handles content.
 
 ## Why this matters
 

@@ -3,25 +3,35 @@
 
 ## 1) Project Summary
 
-Build a **brain-grounded embedding system** that maps text (v1) into a fixed-length vector where similarity reflects **predicted similarity of human brain processing**, rather than standard semantic similarity.
+Build a **cognitive measurement layer** that maps any content into interpretable brain-derived scores across multiple cognitive dimensions.
 
-```text
-input text -> TRIBE v2 -> predicted brain-response tensor (T x 20,484) -> temporal pooling -> projection head -> embedding (512-d) -> cosine similarity
+Not a single embedding. A multi-axis cognitive profile:
+
+```json
+{
+  "cognitive_load": 0.82,
+  "emotional_intensity": 0.34,
+  "motor_engagement": 0.91,
+  "spatial_processing": 0.15,
+  "overall_brain_fingerprint": [512-d vector]
+}
 ```
 
-This is **not** a brain-decoding system (fMRI -> content) and **not** a CLIP clone. It builds a **new embedding space derived from predicted brain responses**.
+Built on [Meta's TRIBE v2](https://github.com/facebookresearch/tribev2), which predicts ~20,484 cortical vertices of fMRI brain response from text, audio, and video. The vertices map to a standard brain atlas (fsaverage5), so each vertex belongs to a known brain region. We exploit this to extract region-specific cognitive axes, not just a single opaque embedding.
+
+This is **not** a brain-decoding system (fMRI -> content), **not** a CLIP clone, and **not** "just a better sentence-transformer." It measures something fundamentally different: **how the brain processes content**, not what the content means.
 
 ---
 
 ## 2) Why this project exists
 
-Standard embeddings capture semantic similarity. They do **not** capture:
-- cognitive load (how hard is this to process?)
-- affective processing (what emotions does this trigger neurally?)
-- sensorimotor grounding (does this evoke physical sensation?)
-- "how similarly two inputs are processed by the human brain"
+Standard embeddings tell you what content is **about**. They do not tell you:
+- How cognitively demanding it is to process
+- What emotions it triggers neurally
+- Whether it evokes physical/motor sensation
+- How similarly the brain would handle two different pieces of content
 
-TRIBE v2 (Meta, March 2026) makes this feasible. It predicts high-resolution fMRI brain responses (~20,484 cortical vertices) from video, audio, and text, trained on 1,000+ hours of fMRI data from 720+ subjects.
+TRIBE v2 (Meta, March 2026) predicts high-resolution fMRI brain responses from video, audio, and text, trained on 1,000+ hours of real fMRI data from 720+ subjects. Because its output maps to a standard brain atlas, we can decompose the prediction into region-specific signals — not just one vector, but separate measurements for cognitive load, emotion, motor engagement, spatial processing, and more.
 
 ---
 
@@ -30,28 +40,78 @@ TRIBE v2 (Meta, March 2026) makes this feasible. It predicts high-resolution fMR
 ### Completed
 - **Round 1 validation (100 pairs):** Pearson r=0.24, p=0.017. Brain similarity and semantic similarity are barely correlated. All 7 divergence categories work as predicted. See Section 6 for full results.
 
-### Next: Round 2 — confirm at scale
+### Phase 2: Confirm at scale (CURRENT)
 - 1,000 pairs, 25+ per divergence category, paragraph-length minimum
-- Same method as Round 1 (mean-pooled TRIBE vectors, cosine sim vs. sentence-transformer)
+- Same method as Round 1 (mean-pooled whole-brain TRIBE vectors, cosine sim vs. sentence-transformer)
 - Add LLaMA embedding baseline (tests whether TRIBE's brain mapping adds value beyond LLaMA itself)
 - Add random-pair baseline (quantifies the high baseline brain similarity)
-- Use L4 GPU instead of A100 to save compute units
+- Cache **raw tensors** (T, 20484) to Google Drive — needed for all future experiments
+- Use A100 GPU, overnight run
 
-### After Round 2 — fingerprinting experiments
-- Test alternative pooling methods (mean-centering, z-scoring, max, variance) to address the high baseline problem
-- Test region-specific pooling (emotional, motor, prefrontal, language regions)
-- Test alternative similarity metrics (correlation distance, CKA, RSA)
+### Phase 3: Region-based decomposition
+This is the key step that transforms Cognix from "a single embedding" into "a cognitive measurement layer."
+
+TRIBE's 20,484 vertices sit on the fsaverage5 cortical mesh. Standard brain atlases (e.g., Desikan-Killiany, Schaefer) assign every vertex to a named brain region. By indexing into these regions:
+
+```python
+prefrontal_indices = atlas.get_vertices("prefrontal_cortex")
+limbic_indices = atlas.get_vertices("amygdala", "insula", "anterior_cingulate")
+motor_indices = atlas.get_vertices("precentral_gyrus", "supplementary_motor")
+spatial_indices = atlas.get_vertices("parahippocampal", "retrosplenial")
+
+cognitive_load = pooled[prefrontal_indices].mean()
+emotion = pooled[limbic_indices].mean()
+motor = pooled[motor_indices].mean()
+spatial = pooled[spatial_indices].mean()
+```
+
+Each text gets a multi-axis cognitive profile. Similarity becomes task-specific: compare texts by emotional profile, by cognitive demand, or by the full brain fingerprint.
+
+**Validation:** Check that the "emotion axis" actually scores higher on emotional arousal pairs than on cognitive load pairs. Check that the "motor axis" scores higher on sensorimotor pairs. If the axes align with the pair categories, the decomposition works.
+
+**Assumption to verify:** TRIBE's vertex predictions are spatially meaningful at the region level. Plausible (it was trained on real fMRI mapped to fsaverage5) but needs testing.
+
+### Phase 4: Fingerprinting experiments
+Test alternative methods on the cached raw tensors (no additional GPU needed):
+- Mean-centering, z-scoring, max pooling, variance pooling
+- Per-region similarity instead of whole-brain similarity
+- Correlation distance, CKA, RSA
 - See Section 11 for full list with references
 
-### After fingerprinting — build the model
-- Train MLP projection head (20484 -> 1024 -> 512) with contrastive loss on cached brain vectors
-- Evaluate: retrieval metrics, clustering, divergence analysis vs. baselines
+### Phase 5: Build and train the model
+- Train projection head(s) on cached brain vectors with contrastive loss
+- Options: single 512-d embedding, OR separate per-axis projections, OR multi-task head
+- Evaluate: retrieval metrics, clustering, per-axis interpretability
 - Package and release on HuggingFace
 
-### Future
-- Knowledge distillation: train a small CPU-friendly student model to mimic the full TRIBE pipeline, removing the GPU requirement at inference
-- Multimodal support (video, audio) with per-modality baseline vectors
-- Cross-modal retrieval in brain space
+### Phase 6: Scale and extend
+- Knowledge distillation: train a small CPU-friendly student model that predicts the cognitive profile directly from text, removing the GPU/TRIBE requirement at inference
+- Multimodal support (video, audio) with per-modality baseline vectors — TRIBE already supports these modalities, so cross-modal comparison in brain space becomes possible
+- Cross-modal retrieval: "find a podcast that engages the brain like this YouTube video"
+
+### End state
+
+```python
+from cognix import CognitiveProfiler
+
+profiler = CognitiveProfiler.from_pretrained("davidgershony/cognix-v1")
+
+profile = profiler.analyze("The desert stretched flat and empty to the horizon.")
+# {
+#   "cognitive_load": 0.23,
+#   "emotional_intensity": 0.12,
+#   "motor_engagement": 0.05,
+#   "spatial_processing": 0.89,
+#   "narrative_suspense": 0.08,
+#   "embedding": [512-d vector]
+# }
+
+# Compare two texts along a specific axis
+sim = profiler.compare(text_a, text_b, axis="emotion")
+
+# Or compare full brain fingerprints
+sim = profiler.compare(text_a, text_b, axis="all")
+```
 
 ---
 
