@@ -233,31 +233,55 @@ Why text first:
 
 ### Step 2: Run TRIBE v2
 
-```python
-events_df = model.get_events_dataframe(text_path="input.txt")
-brain_output = model.predict(events=events_df)
-# brain_output.shape = (T, V)
-# T = time steps at fMRI temporal resolution
-# V ≈ 20,484 cortical vertices (fsaverage5 mesh)
+Note: TRIBE v2 does not tokenize text directly like a normal NLP model. Its internal pipeline is:
+
+```text
+text -> gTTS (text-to-speech) -> audio -> WhisperX (transcription) -> word-level timestamps
+timestamps + LLaMA 3.2-3B -> features at 2 Hz -> brain transformer -> voxel predictions
 ```
 
-Each row = whole-brain response at one moment.
-Each column = one brain location's activity over time.
+The text-to-speech roundtrip exists because TRIBE was trained on naturalistic stimuli (people watching videos / listening to audio in an fMRI scanner). Everything is temporally aligned, so text needs artificial temporal structure via TTS to fit the same framework.
+
+```python
+events_df = model.get_events_dataframe(text_path="input.txt")
+preds, segments = model.predict(events=events_df)
+brain_output = np.asarray(preds)
+# brain_output.shape = (T, 20484)
+# T = time steps at 1 Hz (one prediction per second of TTS audio)
+# 20,484 = cortical vertices on fsaverage5 mesh
+#   Left hemisphere:  indices 0-10,241
+#   Right hemisphere: indices 10,242-20,483
+```
+
+Each row = predicted whole-brain fMRI BOLD response at one moment.
+Each column = one cortical vertex's activity over time.
+
+**Implication for Cognix:** Short texts (under ~10 words) produce very few time steps (T=1-3), making temporal pooling almost trivial. Validation pairs should ideally be paragraph-length.
 
 ### Step 3: Temporal pooling
 
 Collapse the time dimension:
 
 ```python
-pooled = brain_output.mean(dim=0)  # shape: (V,)
+pooled = brain_output.mean(axis=0)  # shape: (20484,)
 ```
 
-This turns a "movie" of brain activity into a single summary snapshot.
+This turns a "movie" of brain activity into a single summary snapshot — a "brain fingerprint."
+
+**Scientific precedent:** Temporal mean pooling over fMRI to get a spatial brain fingerprint is standard practice in neuroimaging:
+- Huth et al. 2016 (semantic atlas) averaged fMRI responses over story presentations to map semantic selectivity across cortex
+- Multi-voxel Pattern Analysis (MVPA) averages voxel patterns across time windows per condition
+- Brain-Score (Schrimpf et al.) averages brain responses over stimulus windows for representational similarity
 
 **Tradeoffs:**
 - Loses temporal dynamics (processing order, surprise, buildup)
 - But produces fixed-size vectors, is cheap, and is a stable baseline
 - Acceptable for MVP; upgrade later with attention pooling or a learned temporal encoder
+
+**Post-MVP temporal alternatives:**
+- Finite Impulse Response (FIR) models that preserve time course
+- Temporal pattern analysis treating the time series as informative
+- Beta-series correlation estimating separate patterns per event
 
 ### Step 4: Projection head
 
