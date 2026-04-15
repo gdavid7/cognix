@@ -153,30 +153,73 @@ Brain similarity and semantic similarity are barely correlated.
 
 ---
 
-## 7) Concrete divergence examples
+## 7) Concrete divergence examples (validated in Round 1)
 
-These examples were validated in Round 1. All show the predicted pattern: low semantic similarity, high brain similarity.
+All examples below show the predicted pattern: low semantic similarity, high brain similarity.
 
 ### Cognitive load (sem=0.087, brain=0.845)
-Dense legal text vs. dense mathematical proof — different topics, same heavy working memory demand.
+
+| Text A | Text B |
+|--------|--------|
+| "The party of the first part shall indemnify and hold harmless the party of the second part against any and all claims, damages, losses, costs, and expenses arising out of or in connection with any breach of this agreement." | "Given that the eigenvalues of a Hermitian matrix are real, and that eigenvectors corresponding to distinct eigenvalues are orthogonal, we can construct an orthonormal basis for the space by applying the Gram-Schmidt procedure to each eigenspace." |
+
+Different topics (law vs. math), same heavy working memory demand and sustained prefrontal activation.
 
 ### Emotional arousal (sem=0.285, brain=0.735)
-War scene vs. medical diagnosis — different content, same amygdala/insula activation pattern.
+
+| Text A | Text B |
+|--------|--------|
+| "The soldier held his dying friend in his arms and screamed for a medic, but no one came. The blood soaked through his uniform as the light faded from his friend's eyes." | "She sat in the doctor's office and heard the words she had been dreading. Stage four. Inoperable. She drove home in silence and sat in the driveway for an hour before she could walk inside." |
+
+Different content (war vs. medical), same amygdala/insula/anterior cingulate activation for emotional distress.
 
 ### Sensorimotor (sem=0.396, brain=0.942)
-Kicking a ball vs. stomping a brake — different scenarios, same motor cortex activation for leg/foot.
+
+| Text A | Text B |
+|--------|--------|
+| "She kicked the ball hard across the wet grass and felt the impact run up through her shin." | "He stomped on the brake pedal with everything he had, his whole leg locking as the car skidded forward." |
+
+Different scenarios (sports vs. driving), same motor cortex activation for leg/foot actions. The brain simulates the physical action while reading.
 
 ### Spatial scene (sem=0.329, brain=0.944)
-Vast desert vs. open ocean — different domains, same spatial scene processing.
+
+| Text A | Text B |
+|--------|--------|
+| "The desert stretched flat and empty to the horizon in every direction. There was no shade, no water, no movement. Just sand and sky." | "Nothing but open ocean in every direction. No land in sight. The boat was a speck on an endless grey surface under an endless grey sky." |
+
+Different domains (desert vs. ocean), same spatial scene processing in parahippocampal place area and retrosplenial cortex.
 
 ### Syntactic surprise (sem=0.090, brain=0.872)
-Garden-path sentences from different topics — same parse-fail-reparse brain pattern.
+
+| Text A | Text B |
+|--------|--------|
+| "The complex houses married and single soldiers and their families." | "The rat the cat the dog chased killed ate the malt." |
+
+Completely different topics, same garden-path reanalysis — the brain parses, fails, and reparses, producing a spike in left inferior frontal gyrus.
 
 ### Narrative suspense (sem=0.237, brain=0.829)
-Thriller vs. medical emergency — different genres, same anticipatory processing trajectory.
+
+| Text A | Text B |
+|--------|--------|
+| "He turned the corner. The hallway was empty. Then he heard the lock click shut behind him. He reached for the handle. It didn't move." | "The surgeon paused. The monitor flatlined. She looked at the wound and then she saw it: a second bleeder, deep, pulsing. She had thirty seconds." |
+
+Different genres (thriller vs. medical), same anticipatory processing trajectory — building tension, prediction error, dopaminergic surprise.
 
 ### Theory of mind (sem=0.260, brain=0.824)
-Reading deception vs. child hiding candy — different contexts, same mentalizing network activation.
+
+| Text A | Text B |
+|--------|--------|
+| "He said he was fine, but she could tell from the way he gripped the steering wheel that he wasn't. She decided not to push it." | "The child hid the candy under the pillow, not realizing his sister had been watching from the hallway the entire time." |
+
+Different contexts (adult emotional deception vs. child behavior), same mentalizing network activation — reasoning about others' beliefs, intentions, and hidden states via medial prefrontal cortex and temporoparietal junction.
+
+### Control: same topic, different processing (sem=0.322, brain=0.587 — LOWEST)
+
+| Text A | Text B |
+|--------|--------|
+| "Water boils when you heat it enough. It turns into steam." | "The nucleation of vapor bubbles in superheated liquid water is governed by the interplay between the Laplace pressure differential across the curved liquid-vapor interface, the degree of metastable superheat relative to the saturation temperature at ambient pressure, and the availability of heterogeneous nucleation sites." |
+
+Same topic, but the brain processes the simple version completely differently from the dense version. This is the strongest evidence that brain space captures processing demands, not just topic.
 
 ---
 
@@ -259,29 +302,30 @@ TRIBE inference is slow (~38 sec/text on A100). Cache pooled vectors to disk. Tr
 
 ## 11) Alternative fingerprinting methods (to explore AFTER Round 2)
 
-These are established methods from neuroimaging for creating brain fingerprints. Each captures different aspects of the brain response. Test after Round 2 confirms the signal at scale.
+Established methods from neuroimaging for creating brain fingerprints. Each captures different aspects of the brain response. Test after Round 2 confirms the signal at scale.
 
-**Pooling variants:**
-- Mean-centering (subtract corpus-average vector to remove shared baseline)
-- MVP z-scoring (z-score across vertices per time point — emphasizes relative activation patterns)
-- Max pooling (keep peak activations)
-- Variance pooling (how much does activation fluctuate — captures processing difficulty)
+### Pooling variants
+- **Mean-centering** — subtract corpus-average vector to remove shared "processing language" baseline. May fix the high-baseline problem directly.
+- **MVP z-scoring** — z-score across vertices per time point, emphasizing relative activation patterns over absolute levels. Core technique in [multi-voxel pattern analysis (Haxby et al. 2001)](https://pmc.ncbi.nlm.nih.gov/articles/PMC3389290/).
+- **Max pooling** — keep peak activations instead of averaging. Preserves strongest regional responses.
+- **Variance pooling** — how much does activation fluctuate over time? Captures processing difficulty and cognitive effort.
 
-**Region-specific analysis:**
+### Region-specific analysis
 - Emotional regions only (amygdala-adjacent, insula)
-- Motor cortex only
-- Prefrontal cortex only (working memory, executive function)
+- Motor cortex only (for sensorimotor pairs)
+- Prefrontal cortex only (working memory, executive function, cognitive load)
 - Language network only (left temporal/frontal)
 
-**Alternative similarity metrics:**
-- Correlation distance (mean-centered cosine — may fix the high baseline issue)
-- CKA (Centered Kernel Alignment — compares representational geometry)
+### Alternative similarity metrics
+- **Correlation distance** — mean-centered cosine, may fix the high baseline issue
+- **CKA (Centered Kernel Alignment)** — compares representational geometry between systems rather than individual pairs. Standard in DNN-to-brain comparison. [Kornblith et al. 2019](https://arxiv.org/abs/1905.00414)
+- **RSA (Representational Similarity Analysis)** — compare full dissimilarity matrices rather than individual pairs. The foundational method for relating brain and model representations. [Kriegeskorte et al. 2008](https://www.frontiersin.org/journals/systems-neuroscience/articles/10.3389/neuro.06.004.2008/full)
 
-**More advanced methods:**
-- Beta-series extraction (fit a GLM per stimulus instead of raw averaging)
-- t-statistic maps (where did the brain respond significantly, not just how much)
-- Connectivity fingerprinting (Finn et al. 2015 — inter-region correlation patterns during processing)
-- Voxel reliability weighting (weight vertices by how reliably TRIBE predicts them)
+### Advanced methods from neuroimaging
+- **Beta-series extraction** — fit a GLM to estimate one activation weight per vertex per stimulus, instead of raw time-series averaging. More principled because it accounts for the hemodynamic response shape. [Rissman et al. 2004](https://pubmed.ncbi.nlm.nih.gov/15488425/)
+- **t-statistic maps** — instead of raw activation, compute where the brain responded *significantly* vs. baseline. Gives "where did the brain care?" rather than "how much did each vertex fire."
+- **Connectivity fingerprinting** — compute correlations *between* brain regions during processing. Two texts might activate the same regions at different levels but show the same inter-region communication pattern. This is how individual brain fingerprinting was demonstrated. [Finn et al. 2015, Nature Neuroscience](https://www.nature.com/articles/nn.4135)
+- **Voxel reliability weighting** — weight vertices by how reliably TRIBE predicts them, instead of treating all 20,484 equally. Noisy vertices get downweighted.
 
 ---
 
@@ -314,12 +358,62 @@ TRIBE v2: **CC BY-NC 4.0**. Non-commercial use only. Cognix inherits this constr
 
 ---
 
-## 15) Limitations
+## 15) Real-world applications
+
+### Content accessibility and readability
+Current readability scores (Flesch-Kincaid, etc.) use surface features like word length and sentence length. Cognix could measure actual predicted cognitive processing demand. A patient information leaflet that triggers the same brain pattern as a dense legal contract is probably too complex for its audience — even if its Flesch-Kincaid score looks fine. Accessible writing tools could flag cognitively demanding passages regardless of surface-level simplicity.
+
+### Education and adaptive learning
+Two explanations of the same concept can have identical semantic content but wildly different processing demands. Cognix could match learning materials to a student's cognitive level by comparing the brain fingerprint of candidate materials against materials the student has successfully engaged with. This goes beyond topic matching (which semantic embeddings already do) to matching *how the brain handles the material*.
+
+### Search and retrieval
+Standard search finds documents about the same topic. Cognix could find documents that are *processed similarly* regardless of topic: "find me articles that are as cognitively demanding as this legal brief" or "find video clips with a similar attentional profile to this one." This is a new axis for retrieval that doesn't exist in any current search system.
+
+### Mental health and content moderation
+Emotional arousal pairs (war scenes vs. medical diagnoses) trigger similar brain distress patterns despite different topics. Keyword filters miss this cross-domain emotional similarity. Brain-grounded embeddings could identify content with high emotional arousal signatures without relying on topic-specific keyword lists, enabling more nuanced content warnings and moderation.
+
+### Recommendation systems
+Current recommenders suggest "more of the same topic." Brain-grounded embeddings could recommend based on cognitive engagement patterns: "You were deeply engaged by this thriller — here's a medical drama with a similar suspense-processing profile" instead of "here's another thriller." This captures the *experience* of consuming content, not just its subject.
+
+### AI alignment and interpretability
+Compare how language models represent text vs. how the human brain processes it. Cognix embeddings could serve as a human-grounded reference point for evaluating whether model representations align with human cognition. [Caucheteux & King (2022)](https://www.nature.com/articles/s42003-022-03036-1) showed that LLMs and brains partially converge — Cognix could quantify exactly where they diverge and what that means.
+
+---
+
+## 16) Research directions
+
+### Investigating what brain space captures that semantic space doesn't
+The Round 1 results show divergence, but we don't yet know precisely *what* the brain dimensions encode. Systematic probing — varying one cognitive property at a time (e.g., holding topic constant while varying emotional intensity, or holding complexity constant while varying sensorimotor content) — could map which brain dimensions correspond to which cognitive properties.
+
+### Region-specific cognitive embeddings
+Instead of one embedding from the whole brain, build separate embeddings from distinct cortical networks: an "emotional embedding" from limbic regions, a "motor embedding" from sensorimotor cortex, a "complexity embedding" from prefrontal cortex. These could be used independently or combined. This would let you query: "find text that *feels* similar" (emotional embedding) vs. "find text that's *similarly demanding*" (prefrontal embedding).
+
+### Cross-modal cognitive similarity
+TRIBE v2 supports video and audio. Do a thriller movie clip and a thriller novel excerpt produce similar brain fingerprints? If so, Cognix enables cross-modal retrieval: "find a podcast that engages the brain like this YouTube video." This is impossible with current embedding systems because CLIP-style models only capture semantic cross-modal alignment, not processing-level similarity.
+
+### Validating against real fMRI data
+TRIBE v2 produces *predicted* brain responses. How well do Cognix similarity rankings match similarity rankings computed from *real* fMRI data? Datasets like the Narratives collection (Nastase et al. 2021) have multiple subjects listening to the same stories — computing representational similarity from real fMRI and comparing to Cognix's predictions would ground-truth the entire approach.
+
+### Individual differences in cognitive similarity
+TRIBE v2 predicts population-average brain responses. But people differ — a lawyer might process legal text effortlessly while struggling with math, reversing the "cognitive load" similarity for those specific texts. Adapting Cognix to individual brain profiles (using TRIBE's subject-specific prediction capability) could create personalized cognitive embeddings.
+
+### Temporal dynamics as a feature
+Mean pooling discards temporal information. The *trajectory* of brain activation over time — how processing unfolds — may carry distinct similarity information. Two texts might produce similar average activation but very different temporal patterns (one builds slowly, the other spikes immediately). Preserving this temporal structure could capture suspense, surprise, and narrative arc as similarity dimensions.
+
+### Brain-grounded evaluation of LLMs
+Use Cognix as a benchmark: given two LLMs, which one's internal representations are more aligned with human brain processing patterns? This extends [Brain-Score (Schrimpf et al.)](https://www.biorxiv.org/content/10.1101/407007v2.full) from vision to language. An LLM whose representations better predict brain responses might be one that "understands" language more like humans do — with implications for safety and alignment.
+
+### Cognitive complexity scoring
+Instead of comparing pairs, extract a single scalar per text: how much total brain activation does this text produce? The L2 norm or variance of the brain vector could serve as a "cognitive complexity score" — a brain-grounded readability metric. This is simpler than the full embedding system and could be a standalone tool.
+
+---
+
+## 17) Limitations
 
 - TRIBE predicts coarse fMRI-scale responses (~20,484 vertices), not individual neurons
 - Predictions are population-level (averaged across subjects), not personalized
 - Brain predictions are a transformation of LLaMA features — cannot capture properties LLaMA doesn't encode
 - Mean-pooled vectors have high baseline similarity (~0.82), compressing useful dynamic range
-- Not a direct measure of reward, happiness, or preference
+- Not a direct measure of reward, happiness, or preference — any claims must be validated
 - TRIBE inference is slow (~38 sec/text) and requires GPU
-- Non-commercial license only
+- Non-commercial license (CC BY-NC) inherited from TRIBE v2
