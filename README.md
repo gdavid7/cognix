@@ -40,6 +40,18 @@ Two texts can be semantically unrelated but cognitively similar:
 
 **AI alignment research** — Compare how language models represent text vs. how the human brain processes it. Cognix embeddings could serve as a human-grounded reference point for evaluating whether model representations are becoming more or less brain-like.
 
+## How Cognix differs from related work
+
+| System | Direction | What it captures |
+|--------|-----------|-----------------|
+| **Sentence-transformers** | text → embedding | Semantic meaning (topic, paraphrase detection) |
+| **CLIP** | image/text → shared embedding | Cross-modal semantic alignment |
+| **BrainCLIP** | real fMRI → CLIP space | Brain decoding ("what was this person looking at?") |
+| **MindEye2** | real fMRI → image | Image reconstruction from brain scans |
+| **Cognix** | text → predicted brain response → new embedding | Cognitive processing similarity ("how similarly does the brain handle these?") |
+
+Key distinction: BrainCLIP and MindEye2 go **from brain to content** (decoding). Cognix goes **from content to brain** (encoding) and uses that as a similarity space. No real fMRI needed at inference time.
+
 ## Current status
 
 **Phase 1: Validation experiment.** Testing whether brain-predicted similarity actually diverges from standard semantic similarity on 100 curated text pairs. If correlation is < 0.8, the hypothesis holds and we proceed to build the full system.
