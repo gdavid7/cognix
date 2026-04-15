@@ -85,6 +85,16 @@ Requires Google Colab with A100 GPU (free for students via [Colab Pro](https://c
 - [TRIBE v2](https://github.com/facebookresearch/tribev2) (Meta, CC BY-NC 4.0)
 - PyTorch, sentence-transformers, scipy, scikit-learn
 
+## Built with
+
+| Provider | What we use | Role in Cognix |
+|----------|------------|----------------|
+| **Meta** | [TRIBE v2](https://github.com/facebookresearch/tribev2), [LLaMA 3.2](https://huggingface.co/meta-llama/Llama-3.2-3B) | Brain response prediction, text feature extraction |
+| **Google** | [Colab](https://colab.research.google.com), [gTTS](https://pypi.org/project/gTTS/) | GPU compute, text-to-speech for temporal alignment |
+| **OpenAI** | [Whisper](https://github.com/openai/whisper) (via [WhisperX](https://github.com/m-bain/whisperX)) | Word-level timestamp extraction |
+| **Hugging Face** | [Transformers](https://huggingface.co/docs/transformers), [sentence-transformers](https://www.sbert.net/) | Model hosting, semantic similarity baseline |
+| **PyTorch** | [torch](https://pytorch.org/) | ML framework |
+
 ## License
 
 This project depends on TRIBE v2, which is released under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Cognix inherits that constraint: **non-commercial use only**.
