@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Artifacts (large cached vectors, checkpoints)
+artifacts/cached_vectors/*.npy
+artifacts/cached_vectors/*.h5
+artifacts/checkpoints/*.pt
+artifacts/checkpoints/*.pth
+
+# TRIBE v2 model cache
+cache/
+tribev2/
+
+# Environment
+.env
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
