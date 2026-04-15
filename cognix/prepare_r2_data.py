@@ -21,8 +21,9 @@ HANDCRAFTED_PATH = DATA_DIR / "validation_pairs_r2_handcrafted.jsonl"
 OUTPUT_PAIRS_PATH = DATA_DIR / "validation_pairs_r2.jsonl"
 OUTPUT_TEXTS_PATH = DATA_DIR / "r2_unique_texts.jsonl"
 
-STS_SAMPLE_SIZE = 400
-WIKI_SAMPLE_SIZE = 300  # number of pairs (needs 2x paragraphs)
+STS_SAMPLE_SIZE = 180
+STS_MIN_WORDS = 15  # both texts must be >= this (TRIBE needs paragraph-length)
+WIKI_SAMPLE_SIZE = 500  # increased to compensate for smaller STS-B after filtering
 WIKI_MIN_WORDS = 20
 WIKI_MAX_WORDS = 150
 
@@ -39,8 +40,12 @@ def load_handcrafted() -> list[dict]:
     return pairs
 
 
-def load_stsb(n: int = STS_SAMPLE_SIZE) -> list[dict]:
-    """Download STS-B and sample pairs spanning the similarity range."""
+def load_stsb(n: int = STS_SAMPLE_SIZE, min_words: int = STS_MIN_WORDS) -> list[dict]:
+    """Download STS-B and sample pairs spanning the similarity range.
+
+    Filters to pairs where both texts have >= min_words words.
+    TRIBE needs paragraph-length input; short sentences produce junk.
+    """
     try:
         from datasets import load_dataset
     except ImportError:
@@ -50,9 +55,17 @@ def load_stsb(n: int = STS_SAMPLE_SIZE) -> list[dict]:
     ds = load_dataset("mteb/stsbenchmark-sts", split="test")
     print(f"STS-B test set: {len(ds)} pairs")
 
+    # Filter by minimum word count on both sides
+    filtered = [
+        row for row in ds
+        if len(row["sentence1"].split()) >= min_words
+        and len(row["sentence2"].split()) >= min_words
+    ]
+    print(f"After filtering (both texts >= {min_words} words): {len(filtered)} pairs")
+
     # Bin by similarity score (0-5) and sample evenly across bins
     bins = {i: [] for i in range(6)}
-    for row in ds:
+    for row in filtered:
         score = row["score"]
         bin_idx = min(int(score), 5)
         bins[bin_idx].append(row)
@@ -68,8 +81,8 @@ def load_stsb(n: int = STS_SAMPLE_SIZE) -> list[dict]:
     # Fill remaining from any bin
     remaining = n - len(sampled)
     if remaining > 0:
-        all_rows = [r for r in ds if r not in sampled]
-        sampled.extend(rng.sample(all_rows, min(remaining, len(all_rows))))
+        pool = [r for r in filtered if r not in sampled]
+        sampled.extend(rng.sample(pool, min(remaining, len(pool))))
 
     pairs = []
     for i, row in enumerate(sampled):

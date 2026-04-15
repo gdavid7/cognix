@@ -28,7 +28,7 @@ text → TRIBE v2 (gTTS → WhisperX → LLaMA 3.2 → 8-layer Transformer → b
 
 **Pearson r = 0.24, Spearman r = 0.32, p < 0.02.**
 
-Brain similarity and semantic similarity are barely correlated. All 7 divergence categories diverge as predicted. But:
+Brain similarity and semantic similarity are barely correlated. All 7 divergence categories diverged as predicted. Note: Round 1 used short garden-path sentences (syntactic_surprise) and length-mismatched control pairs. Both were fixed for Round 2 — syntactic_surprise replaced with paragraph-length syntactic_complexity, control simple texts extended to match complex text lengths. But:
 
 1. **High baseline.** 81% of pairs have brain sim > 0.7. Mean-pooled whole-brain vectors are dominated by a shared language-processing baseline. Baseline removal (mean-centering) is required before results are interpretable.
 2. **LLaMA baseline untested.** We don't yet know if this divergence comes from the brain mapping or from LLaMA 3.2 features that sentence-transformers don't capture. This is the critical experiment.
@@ -36,7 +36,7 @@ Brain similarity and semantic similarity are barely correlated. All 7 divergence
 
 ## Current status
 
-**Round 2 in progress.** 943 pairs, 1,853 unique texts. Three key experiments:
+**Round 2 in progress.** 923 pairs, 1,835 unique texts. Three key experiments:
 
 1. **Scale test:** Does the r ≈ 0.24 divergence hold at 10× more pairs?
 2. **LLaMA baseline:** Extract LLaMA 3.2-3B embeddings (last hidden state, mean-pooled) and compare. If brain sim ≈ LLaMA sim, the brain mapping adds nothing.

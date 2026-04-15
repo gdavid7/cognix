@@ -76,7 +76,7 @@ Brain similarity and semantic similarity are barely correlated.
 
 | Category | N | Semantic sim | Brain sim | Divergence |
 |----------|---|-------------|-----------|------------|
-| Syntactic surprise | 5 | 0.090 | 0.872 | **+0.782** |
+| Syntactic surprise* | 5 | 0.090 | 0.872 | **+0.782** |
 | Cognitive load | 5 | 0.087 | 0.845 | **+0.758** |
 | Spatial scene | 5 | 0.329 | 0.944 | **+0.615** |
 | Narrative suspense | 5 | 0.237 | 0.829 | **+0.592** |
@@ -92,6 +92,8 @@ Brain similarity and semantic similarity are barely correlated.
 - All 7 divergence categories diverge in the predicted direction — brain says "similar" where semantics says "not similar"
 - The control category (same topic, different complexity) has the *lowest* brain similarity (0.587), meaning the brain representation distinguishes processing demands even within the same topic
 - Paraphrases score high on both metrics, as expected
+
+*\*Round 1 syntactic surprise pairs were short garden-path sentences (<10 words). These are unreliable in TRIBE's TTS-based pipeline. Replaced with paragraph-length syntactic complexity pairs in Round 2.*
 
 ### What this doesn't tell us
 
@@ -183,8 +185,13 @@ Does the r ≈ 0.24 divergence hold with 943 pairs (20–25 per divergence categ
 
 Dataset breakdown:
 - 243 handcrafted divergence pairs (7 categories + controls + adversarial)
-- 400 STS-B pairs (spanning the similarity range)
-- 300 random Wikipedia pairs (baseline)
+- 180 STS-B pairs (filtered to both texts >= 15 words for TRIBE compatibility)
+- 500 random Wikipedia pairs (baseline)
+
+Data fixes from Round 1:
+- Syntactic surprise (short garden-path sentences) replaced with syntactic complexity (paragraph-length texts with nested relative clauses and complex subordination, ordinary vocabulary)
+- Control pairs: simple texts extended to paragraph length to eliminate length confound
+- STS-B: filtered out pairs with texts under 15 words (TRIBE needs paragraph-length input)
 
 ### Experiment 3: Baseline removal (important)
 
