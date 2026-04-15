@@ -50,7 +50,10 @@ Two texts can be semantically unrelated but cognitively similar:
 | **MindEye2** | real fMRI → image | Image reconstruction from brain scans |
 | **Cognix** | text → predicted brain response → new embedding | Cognitive processing similarity ("how similarly does the brain handle these?") |
 
-Key distinction: BrainCLIP and MindEye2 go **from brain to content** (decoding). Cognix goes **from content to brain** (encoding) and uses that as a similarity space. No real fMRI needed at inference time.
+**The simplest way to understand the difference:**
+
+- **BrainCLIP:** Someone is in an fMRI scanner looking at a dog. BrainCLIP reads their brain scan and says "they're looking at a dog." It needs a real brain scan as input.
+- **Cognix:** You give it two pieces of text — a legal contract and a math proof. It predicts what the brain would do with each one, and says "these would be processed similarly" even though they're about completely different topics. No brain scanner needed.
 
 ## Current status
 
