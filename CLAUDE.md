@@ -24,9 +24,9 @@ text -> TRIBE v2 (LLaMA 3.2 -> 8-layer Transformer -> brain projection)
 
 ## Current status
 
-Working on: **Phase 0 (environment setup) and Phase 1 (validation round 1, 100 pairs)**
+**Phase 1 validation PASSED.** Pearson r = 0.24, Spearman r = 0.32 (p < 0.02). Brain similarity is fundamentally different from semantic similarity — barely correlated. 97/100 pairs succeeded.
 
-Everything else (scaffold, training, eval, HuggingFace release) comes later — only after validation proves brain similarity diverges from semantic similarity.
+Next: Phase 1.5 (Round 2, 1000 pairs) to confirm at scale, then full system build.
 
 ## Dev setup
 
