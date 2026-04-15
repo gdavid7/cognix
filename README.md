@@ -1,72 +1,87 @@
 # Cognix
 
-Research into brain-grounded cognitive fingerprints. The question: **can predicted brain responses be turned into useful representations that capture something standard embeddings miss?**
+**Can predicted brain responses tell us something about text that standard embeddings miss?**
 
-Standard embeddings tell you what content is about. They don't tell you how cognitively demanding it is, what emotions it triggers neurally, or whether it activates motor circuits. [Meta's TRIBE v2](https://github.com/facebookresearch/tribev2) predicts fMRI brain responses from text, audio, and video. Cognix investigates the optimal way to turn those brain tensors into fingerprints for downstream tasks.
+Standard text embeddings capture what content is *about* — its semantic meaning. They don't capture how the brain *processes* it: how cognitively demanding it is, what emotions it triggers, whether it activates motor circuits. Two texts about completely different topics can engage the brain in remarkably similar ways.
+
+Cognix uses [Meta's TRIBE v2](https://github.com/facebookresearch/tribev2) — a model that predicts fMRI brain responses from text — to explore whether predicted brain activity can serve as a useful representation space for measuring **cognitive similarity**.
+
+## The question
+
+TRIBE v2 predicts ~20,484 cortical vertices of brain activity from text. If we mean-pool those predictions into a vector and compute cosine similarity between two texts, do we get something meaningfully different from semantic similarity?
+
+Early results suggest yes:
+
+| Text A | Text B | Semantic sim | Brain sim |
+|--------|--------|-------------|-----------|
+| Dense legal clause | Dense math proof | 0.09 | 0.85 |
+| Soldier watching a friend die | Receiving a terminal diagnosis | 0.29 | 0.74 |
+| Kicking a ball across wet grass | Stomping on a brake pedal | 0.40 | 0.94 |
+| Vast empty desert, no movement | Open ocean, no land in sight | 0.33 | 0.94 |
+| Center-embedded sentence | Garden-path sentence | 0.09 | 0.87 |
+
+Round 1 (100 pairs): Pearson r = 0.24 between brain and semantic similarity. They're measuring different things.
+
+## What we don't know yet
+
+This is research. Several things could undermine the finding:
+
+1. **Does the brain mapping actually add value?** TRIBE uses LLaMA 3.2-3B internally. If LLaMA's own embeddings show the same divergence, then the brain mapping is just re-encoding LLaMA features in a noisier space. This is the critical experiment — Round 2 includes a direct LLaMA 3.2 embedding comparison.
+
+2. **Is the high baseline a problem?** Even unrelated texts average 0.82 brain similarity. The useful signal lives in a narrow range above that floor. Baseline removal (mean-centering) may resolve this, but it hasn't been tested yet.
+
+3. **Does this hold at scale?** Round 1 had only 5 pairs per divergence category. Round 2 scales to 943 pairs with 20–25 per category.
+
+## If it holds up
+
+If the brain mapping genuinely reshapes the similarity geometry beyond what LLaMA already captures, this opens up directions like:
+- Cognitive readability scoring (how demanding is this text to process?)
+- Cross-topic similarity based on processing demands rather than meaning
+- Region-specific analysis (do prefrontal vertices respond to cognitive load? limbic to emotion?)
+- AI alignment evaluation — does a model's representation space resemble the brain's?
+
+These are possibilities, not promises. Each would require its own validation.
 
 ## Pipeline
 
 ```
-input -> TRIBE v2 -> brain tensor (T, 20484) -> fingerprint -> downstream tasks
+text → TRIBE v2 → brain tensor (T, 20484) → mean pooling → (20484,) → cosine similarity
 ```
 
-The fingerprinting method is the research question. The brain tensor's 20,484 vertices map to a standard brain atlas (fsaverage5), potentially enabling region-specific signal extraction — but this must be verified empirically, not assumed.
-
-## Why this is interesting
-
-Two texts can be semantically unrelated but cognitively similar:
-
-| Text A | Text B | Semantic sim | Brain sim |
-|--------|--------|-------------|-----------|
-| Dense legal clause | Dense math proof | 0.087 | 0.845 |
-| Soldier watching a friend die | Reading a terminal diagnosis | 0.285 | 0.735 |
-| Kicking a ball | Stomping on a brake pedal | 0.396 | 0.942 |
-| Vast empty desert | Open ocean, no land in sight | 0.329 | 0.944 |
-
-Round 1 validation (100 pairs) showed Pearson r = 0.24 between brain similarity and semantic similarity — barely correlated. All 7 divergence categories diverge in the predicted direction.
-
-![Scatter plot](notebooks/validation_scatter.png)
-
-## Open questions
-
-1. **Does the brain mapping add value beyond LLaMA?** TRIBE's text pathway uses LLaMA 3.2 internally. If raw LLaMA embeddings show the same divergence, the brain mapping adds nothing. This is the critical test — Phase 2 includes a direct LLaMA baseline.
-
-2. **Can the high baseline be resolved?** Mean-pooled brain vectors have ~0.82 cosine similarity even for unrelated texts. Baseline removal (mean-centering, z-scoring) is required before any similarity or axis extraction.
-
-3. **Are the vertex predictions spatially meaningful?** If TRIBE's predictions are region-accurate, we can extract cognitive axes (prefrontal = load, limbic = emotion, motor cortex = motor). If not, we fall back to whole-brain methods.
-
-## If it works
-
-Potential applications: cognitive readability scoring, brain-grounded content recommendation, cross-topic emotional arousal detection, AI alignment benchmarking. If region decomposition works, multi-axis cognitive profiles per text.
+TRIBE v2 internally: text → gTTS → WhisperX → LLaMA 3.2-3B → 8-layer Transformer → brain projection
 
 ## How Cognix differs from related work
 
 | System | Direction | What it captures |
 |--------|-----------|-----------------|
-| Sentence-transformers | text -> embedding | Semantic meaning |
-| BrainCLIP | real fMRI -> CLIP space | Brain decoding ("what were they looking at?") |
-| MindEye2 | real fMRI -> image | Image reconstruction |
-| **Cognix** | text -> predicted brain response -> fingerprint | Cognitive processing characteristics |
+| Sentence-transformers | text → embedding | Semantic meaning |
+| BrainCLIP / MindEye2 | real fMRI → content | Brain decoding ("what were they looking at?") |
+| **Cognix** | text → predicted brain response | Cognitive processing characteristics |
 
-BrainCLIP needs a real brain scan. Cognix predicts the brain response from content. Different direction entirely.
+BrainCLIP and MindEye2 go **brain → content** (decoding what someone perceived). Cognix goes **content → brain** (predicting how the brain would process it). No scanner needed.
 
 ## Current status
 
-**Phase 2 (in progress):** Scaling to 1,000 pairs with LLaMA baseline, random baseline, and adversarial pairs. See [design doc](cognitive_similarity_embedding_system_design_v2.md) for full roadmap.
+**Round 2 in progress.** 943 pairs, three experiments:
+1. Scale: does r ≈ 0.24 hold at 10× more pairs?
+2. LLaMA baseline: does brain sim ≠ LLaMA sim? (the make-or-break test)
+3. Baseline removal: does mean-centering fix the 0.82 floor?
 
-## Running the validation experiment
+See the [design doc](cognitive_similarity_embedding_system_design_v2.md) for full details.
 
-Requires Google Colab with A100 GPU (free for students via [Colab Pro](https://colab.research.google.com/signup)).
+## Running the experiments
+
+Requires Google Colab with A100 GPU.
 
 1. Add your [HuggingFace token](https://huggingface.co/settings/tokens) as a Colab secret named `HF_TOKEN` (requires access to [meta-llama/Llama-3.2-3B](https://huggingface.co/meta-llama/Llama-3.2-3B))
-2. Open `notebooks/00_validation_experiment.ipynb` from GitHub in Colab
+2. Open `notebooks/01_r2_tribe_inference.ipynb` in Colab
 3. Set runtime to **A100 GPU + High RAM**
-4. Run all cells
+4. Run all cells (~19 hours for full dataset, resumable)
 
 ## Built with
 
-| Provider | What we use | Role |
-|----------|------------|------|
+| Provider | What | Role |
+|----------|------|------|
 | **Meta** | [TRIBE v2](https://github.com/facebookresearch/tribev2), [LLaMA 3.2](https://huggingface.co/meta-llama/Llama-3.2-3B) | Brain response prediction, text features |
 | **Google** | [Colab](https://colab.research.google.com), [gTTS](https://pypi.org/project/gTTS/) | GPU compute, text-to-speech |
 | **OpenAI** | [Whisper](https://github.com/openai/whisper) (via [WhisperX](https://github.com/m-bain/whisperX)) | Timestamp extraction |
