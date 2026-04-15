@@ -55,9 +55,31 @@ Two texts can be semantically unrelated but cognitively similar:
 - **BrainCLIP:** Someone is in an fMRI scanner looking at a dog. BrainCLIP reads their brain scan and says "they're looking at a dog." It needs a real brain scan as input.
 - **Cognix:** You give it two pieces of text — a legal contract and a math proof. It predicts what the brain would do with each one, and says "these would be processed similarly" even though they're about completely different topics. No brain scanner needed.
 
+## Validation results
+
+Phase 1 validation (100 pairs, 10 categories) confirmed that brain similarity and semantic similarity are **barely correlated** (Pearson r = 0.24, p = 0.017).
+
+![Scatter plot](notebooks/validation_scatter.png)
+
+### Per-category breakdown
+
+| Category | Semantic sim | Brain sim | Divergence |
+|----------|-------------|-----------|------------|
+| Syntactic surprise | 0.090 | 0.872 | **+0.782** |
+| Cognitive load | 0.087 | 0.845 | **+0.758** |
+| Spatial scene | 0.329 | 0.944 | **+0.615** |
+| Narrative suspense | 0.237 | 0.829 | **+0.592** |
+| Theory of mind | 0.260 | 0.824 | **+0.564** |
+| Sensorimotor | 0.396 | 0.942 | **+0.547** |
+| Emotional arousal | 0.285 | 0.735 | **+0.450** |
+| Control (diff processing) | 0.322 | 0.587 | +0.265 |
+| Paraphrase | 0.812 | 0.907 | +0.095 |
+
+Every divergence category we predicted works. The control category (same topic, different complexity) has the **lowest** brain similarity — confirming the brain distinguishes processing demands even within the same topic.
+
 ## Current status
 
-**Phase 1: Validation experiment.** Testing whether brain-predicted similarity actually diverges from standard semantic similarity on 100 curated text pairs. If correlation is < 0.8, the hypothesis holds and we proceed to build the full system.
+**Phase 1: PASSED.** Proceeding to Round 2 (1,000 pairs) and full system build.
 
 ## Project structure
 
@@ -66,9 +88,13 @@ cognix/
   cognix/              # Python package
     tribe_wrapper.py   # TRIBE v2 loading, inference, caching
   notebooks/
-    00_validation_experiment.ipynb  # Colab-ready validation notebook
+    00_validation_experiment.ipynb  # Colab notebook with full results
+    validation_scatter.png          # Scatter plot from Phase 1
   data/
     validation_pairs.jsonl          # 100 curated text pairs (10 categories)
+    validation_results.jsonl        # Per-pair similarity scores
+  artifacts/
+    cached_vectors/                 # Cached TRIBE brain vectors (reusable)
 ```
 
 ## Running the validation experiment
