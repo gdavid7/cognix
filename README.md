@@ -37,6 +37,7 @@ This is research. Several things could undermine the finding:
 If the brain mapping genuinely reshapes the similarity geometry beyond what LLaMA already captures, this opens up directions like:
 - Cognitive readability scoring (how demanding is this text to process?)
 - Cross-topic similarity based on processing demands rather than meaning
+- Cognitively-targeted advertising — serve ads that match the cognitive profile a user engages with (emotional intensity, sensorimotor engagement, narrative tension) rather than just the topic
 - Region-specific analysis (do prefrontal vertices respond to cognitive load? limbic to emotion?)
 - AI alignment evaluation — does a model's representation space resemble the brain's?
 

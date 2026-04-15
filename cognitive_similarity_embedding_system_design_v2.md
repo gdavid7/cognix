@@ -225,6 +225,7 @@ If brain sim ≠ LLaMA sim and the divergence holds at scale, several directions
 **Longer-term possibilities:**
 - Cognitive readability scoring — quantify how demanding a text is to process
 - Cross-topic similarity based on processing demands rather than meaning
+- Cognitively-targeted advertising — if a user engages with an ad, serve them ads that are cognitively similar (same emotional intensity, same level of narrative tension, same sensorimotor engagement) rather than just topically similar. A user who clicks on a visceral rock-climbing ad might respond to a car chase ad, not another climbing ad.
 - AI alignment evaluation via comparison to brain-predicted representations
 - Knowledge distillation to a CPU-friendly model
 - Multimodal cognitive similarity using TRIBE's video/audio pathways
