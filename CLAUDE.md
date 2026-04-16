@@ -64,13 +64,13 @@ The analysis notebook (`02_r2_analysis.ipynb`) currently uses `all-mpnet-base-v2
 
 HuggingFace token via Colab secrets (key icon > `HF_TOKEN`). Clone to `/content/tribev2-repo` (not `/content/tribev2`) to avoid import conflicts.
 
-## Future experiments (after Round 2)
+## After Round 2 (gated on LLaMA baseline results)
 
-Only pursue if LLaMA baseline confirms brain mapping adds value:
+### Phase 3: Region-specific pooling
+Mean pooling drowns localized signals (limbic emotion in 500 of 20,484 vertices). Map vertices to brain regions via Desikan-Killiany atlas, pool per region. Test whether region-specific vectors recover categories that mean pooling misses (especially emotional arousal). Runs on cached raw tensors, no GPU needed, seconds on Mac.
 
-- Mean-centering (subtract corpus-average brain vector)
-- Z-scoring across vertices per time point
-- Region-specific pooling (emotional regions, motor cortex, prefrontal, language network)
-- Variance/max pooling
-- Correlation distance, CKA
-- MLP projection head (20484 → 512-d learned embedding)
+### Phase 4: Distilled cognitive embedding model
+Train a projection head (MLP) on frozen LLaMA features using TRIBE brain similarities as supervision (contrastive learning). Goal: fast 512-d cognitive embedding that runs in milliseconds without TRIBE. Train on ~1.7M pairs from cached vectors (CPU, minutes). Evaluate on held-out benchmark pairs (AUC: does Cognix separate cognitively similar from different better than raw LLaMA?).
+
+### Phase 5: Applications
+Cognitive readability scoring, cognitively-targeted advertising, cross-topic similarity, AI alignment evaluation, multimodal extension, knowledge distillation to standalone small transformer.

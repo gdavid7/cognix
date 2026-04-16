@@ -222,22 +222,46 @@ The divergence pairs were designed to diverge — texts chosen for low semantic 
 
 ## 8. If the experiments pass
 
-If brain sim ≠ LLaMA sim and the divergence holds at scale, several directions open up:
+If brain sim ≠ LLaMA sim and the divergence holds at scale, the next phases build toward a fast, standalone cognitive embedding model.
 
-**Immediate next steps:**
-- Baseline removal and alternative pooling methods (variance, max, region-specific)
-- Region validity test: do prefrontal vertices respond more to cognitive load? Limbic to emotion?
-- Learned projection head (20484 → 512-d) for efficient storage and retrieval
+### Phase 3: Region-specific pooling (days, runs on cached data)
 
-**Longer-term possibilities:**
+Mean pooling averages all 20,484 vertices equally. This likely drowns localized signals — emotional processing is concentrated in limbic regions (~500 vertices), so averaging with 19,984 irrelevant vertices dilutes it. This may explain why emotional arousal underperforms in preliminary results while spatial/sensorimotor categories (which involve larger cortical areas) work well.
+
+Steps:
+- Map fsaverage5 vertices to brain regions using Desikan-Killiany or Schaefer atlas
+- Pool within each region separately (prefrontal, limbic, motor cortex, parietal, etc.)
+- Test whether region-specific vectors recover categories that whole-brain mean pooling misses
+- Compare per-region similarity against LLaMA to identify which regions add value beyond LLaMA
+
+This uses the cached raw tensors `(T, 20484)` — no GPU needed. Runs in seconds on a laptop.
+
+### Phase 4: Distilled cognitive embedding model (1-2 weeks)
+
+TRIBE is too slow for real use (~38 sec/text, 40GB GPU). The goal is a small, fast model that approximates TRIBE's similarity geometry:
+
+```
+text → frozen LLaMA 3.2 → learned projection head → 512-d cognitive embedding
+```
+
+The projection head (a small MLP or transformer) is trained via contrastive learning using TRIBE's brain similarities as supervision: pairs that TRIBE says are cognitively similar should be close in the embedding space, pairs it says are different should be far apart.
+
+Training data: ~1.7 million possible pairings from 1,835 cached texts, each with precomputed brain similarity. Training runs on CPU in minutes (small MLP on cached vectors).
+
+Evaluation: the benchmark dataset (923 labeled pairs) serves as a held-out test set. Compare Cognix embeddings vs. raw LLaMA vs. sentence-transformers on AUC for separating cognitively similar from cognitively different pairs.
+
+If region-specific pooling helps in Phase 3, the projection head trains on region-decomposed features rather than whole-brain vectors — a region-aware cognitive embedding.
+
+### Phase 5: Applications and extensions
+
+These build on a working embedding model. Each requires its own validation.
+
 - Cognitive readability scoring — quantify how demanding a text is to process
 - Cross-topic similarity based on processing demands rather than meaning
-- Cognitively-targeted advertising — if a user engages with an ad, serve them ads that are cognitively similar (same emotional intensity, same level of narrative tension, same sensorimotor engagement) rather than just topically similar. A user who clicks on a visceral rock-climbing ad might respond to a car chase ad, not another climbing ad.
+- Cognitively-targeted advertising — serve ads matching the cognitive profile a user engages with (emotional intensity, sensorimotor engagement, narrative tension) rather than just the topic
 - AI alignment evaluation via comparison to brain-predicted representations
-- Knowledge distillation to a CPU-friendly model
 - Multimodal cognitive similarity using TRIBE's video/audio pathways
-
-These are research directions, not product promises. Each would require its own validation.
+- Knowledge distillation from the LLaMA-based model to a smaller standalone transformer
 
 ---
 

@@ -34,14 +34,13 @@ This is research. Several things could undermine the finding:
 
 ## If it holds up
 
-If the brain mapping genuinely reshapes the similarity geometry beyond what LLaMA already captures, this opens up directions like:
-- Cognitive readability scoring (how demanding is this text to process?)
-- Cross-topic similarity based on processing demands rather than meaning
-- Cognitively-targeted advertising — serve ads that match the cognitive profile a user engages with (emotional intensity, sensorimotor engagement, narrative tension) rather than just the topic
-- Region-specific analysis (do prefrontal vertices respond to cognitive load? limbic to emotion?)
-- AI alignment evaluation — does a model's representation space resemble the brain's?
+If the brain mapping genuinely reshapes the similarity geometry beyond what LLaMA already captures, the next steps are:
 
-These are possibilities, not promises. Each would require its own validation.
+1. **Region-specific pooling** — instead of averaging all 20,484 brain vertices, pool within specific brain regions (prefrontal for cognitive load, limbic for emotion, motor cortex for sensorimotor). This should recover signals that whole-brain averaging drowns out.
+2. **Distilled embedding model** — train a small, fast model that approximates TRIBE's cognitive similarity in milliseconds without needing a 40GB GPU. Contrastive learning on the cached brain vectors, producing a 512-d cognitive embedding.
+3. **Applications** — cognitive readability scoring, cognitively-targeted advertising, cross-topic similarity based on processing demands, AI alignment evaluation, multimodal extension via TRIBE's video/audio pathways.
+
+Each step is gated on the previous one succeeding. These are research directions, not product promises.
 
 ## Pipeline
 
