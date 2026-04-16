@@ -181,7 +181,7 @@ This is the single most important experiment.
 
 ### Experiment 2: Scale (important)
 
-Does the r ≈ 0.24 divergence hold with 943 pairs (20–25 per divergence category)? Round 1 had 5 per category — not enough for per-category statistical significance.
+Does the r ≈ 0.24 divergence hold with 923 pairs (20–25 per divergence category)? Round 1 had 5 per category — not enough for per-category statistical significance.
 
 Dataset breakdown:
 - 243 handcrafted divergence pairs (7 categories + controls + adversarial)
@@ -306,7 +306,7 @@ Only pursue these if the LLaMA baseline confirms the brain mapping adds value.
 
 ### Compute
 - TRIBE v2 needs 40GB+ VRAM. ~38 sec/text on A100
-- 1,853 unique texts ≈ 19.5 hours on A100
+- 1,835 unique texts ≈ 19.4 hours on A100
 - Cache raw tensors to Google Drive for all future experiments
 - All fingerprinting experiments run on cached data (no GPU needed after caching)
 

@@ -30,7 +30,7 @@ This is research. Several things could undermine the finding:
 
 2. **Is the high baseline a problem?** Even unrelated texts average 0.82 brain similarity. The useful signal lives in a narrow range above that floor. Baseline removal (mean-centering) may resolve this, but it hasn't been tested yet.
 
-3. **Does this hold at scale?** Round 1 had only 5 pairs per divergence category. Round 2 scales to 943 pairs with 20–25 per category.
+3. **Does this hold at scale?** Round 1 had only 5 pairs per divergence category. Round 2 scales to 923 pairs with 20–25 per category.
 
 ## If it holds up
 
@@ -62,7 +62,7 @@ BrainCLIP and MindEye2 go **brain → content** (decoding what someone perceived
 
 ## Current status
 
-**Round 2 in progress.** 943 pairs, three experiments:
+**Round 2 in progress.** 923 pairs, three experiments:
 1. Scale: does r ≈ 0.24 hold at 10× more pairs?
 2. LLaMA baseline: does brain sim ≠ LLaMA sim? (the make-or-break test)
 3. Baseline removal: does mean-centering fix the 0.82 floor?

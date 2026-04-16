@@ -42,10 +42,6 @@ Brain similarity and semantic similarity are barely correlated. All 7 divergence
 2. **LLaMA baseline:** Extract LLaMA 3.2-3B embeddings (last hidden state, mean-pooled) and compare. If brain sim ≈ LLaMA sim, the brain mapping adds nothing.
 3. **Baseline removal:** Mean-center brain vectors (subtract corpus mean) before computing similarity. Required to address the 0.82 floor.
 
-## Critical: LLaMA baseline
-
-The analysis notebook (`02_r2_analysis.ipynb`) currently uses `all-mpnet-base-v2` as a proxy for the LLaMA test. **This is wrong** — mpnet is a different model entirely. The real test requires extracting actual LLaMA 3.2-3B embeddings. The inference notebook (`01_r2_tribe_inference.ipynb`) includes a LLaMA embedding extraction step for this purpose.
-
 ## Dev setup
 
 - Local: Mac Air (no GPU) — code, data curation, lightweight models
