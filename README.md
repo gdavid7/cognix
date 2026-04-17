@@ -34,9 +34,10 @@ All per-category divergences are statistically significant (p < 0.001). Permutat
 
 ## Next steps
 
-1. **Region-specific pooling** — instead of averaging all 20,484 brain vertices, pool within specific brain regions (prefrontal for cognitive load, limbic for emotion, motor cortex for sensorimotor). Should recover signals that whole-brain averaging drowns out (especially emotional arousal, which underperforms with mean pooling).
-2. **Distilled embedding model** — train a small, fast model that approximates TRIBE's cognitive similarity in milliseconds without needing a 40GB GPU.
-3. **Downstream evaluation** — validate on human behavioral data (reading times, eye-tracking) to prove the signal is useful, not just different.
+1. **Region-specific pooling** — instead of averaging all 20,484 brain vertices, pool within specific brain regions (prefrontal for cognitive load, limbic for emotion, motor cortex for sensorimotor). Should recover signals that whole-brain averaging drowns out (especially emotional arousal, which underperforms with mean pooling). Determines whether the distilled model outputs a structured embedding (per-region scores) or a single vector.
+2. **Pooling method ablation** — compare mean, variance, max, and z-scored pooling (both whole-brain and per-region). Selects the best input representation for the distilled model.
+3. **Distilled embedding model** — train a small, fast model that approximates TRIBE's cognitive similarity in milliseconds without needing a 40GB GPU.
+4. **Downstream evaluation** — validate on human behavioral data (reading times, eye-tracking) to prove the signal is useful, not just different.
 
 ## Pipeline
 
