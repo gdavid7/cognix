@@ -9,6 +9,9 @@ build/
 # Cached vectors and model checkpoints (large, belong on Google Drive)
 artifacts/
 
+# Provo raw CSVs (80MB total; re-download from https://osf.io/sjefs/)
+data/provo/
+
 # TRIBE v2 model cache
 cache/
 tribev2/
