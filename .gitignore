@@ -7,8 +7,7 @@ build/
 *.egg
 
 # Cached vectors and model checkpoints (large, belong on Google Drive)
-artifacts/cached_vectors/
-artifacts/checkpoints/
+artifacts/
 
 # TRIBE v2 model cache
 cache/
