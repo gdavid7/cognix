@@ -20,7 +20,7 @@ Round 2 (923 pairs, 1,835 texts) compared three similarity metrics per pair:
 
 LLaMA and sentence-transformers largely agree with each other (r=0.83), but brain vectors diverge from both (r≈0.43). The brain mapping isn't re-encoding LLaMA — it captures something different.
 
-Examples of what brain similarity captures that semantics misses:
+Examples of what brain similarity captures that semantics misses (brain rates pairs as *more* similar than their topics suggest):
 
 | Text A | Text B | Semantic sim | Brain sim |
 |--------|--------|-------------|-----------|
@@ -29,6 +29,18 @@ Examples of what brain similarity captures that semantics misses:
 | Kicking a ball across wet grass | Stomping on a brake pedal | 0.43 | 0.91 |
 | Vast empty desert, no movement | Open ocean, no land in sight | 0.38 | 0.95 |
 | Simple explanation of boiling | Technical nucleation physics | 0.39 | 0.78 |
+
+And examples where brain similarity goes the other way — the geometry isn't a one-way inflation:
+
+| Text A | Text B | Semantic sim | LLaMA sim | Brain sim |
+|--------|--------|-------------|-----------|-----------|
+| Plain-language description of dogs as loyal pets | Technical paper on *Canis lupus* domestication via mitochondrial DNA divergence | 0.15 | 0.63 | 0.65 |
+| Mother screams as stroller rolls toward subway tracks | Widower visits late wife's grave every Sunday for eleven years | 0.26 | 0.80 | 0.39 |
+| Two news ledes describing the same Gillespie/CBS letter, near-paraphrased | (other near-paraphrase of same fact) | 0.80 | 0.82 | 0.65 |
+
+The first row is the "control" pattern — same topic, very different processing demands. Brain rates them moderately similar (same domain) but well below the ~0.85 typical brain score, showing the metric distinguishes processing complexity within a topic. The second is the emotional-arousal anomaly: two grief-themed texts that LLaMA rates as very similar, but brain rates *less* similar than chance — evidence that mean pooling drowns the limbic signal in 20,484 vertices, and the main reason region-specific pooling is on the roadmap. The third shows brain disagreeing downward on near-paraphrases.
+
+Note that mean-pooled brain similarity has a high baseline (~0.81 for random pairs) — most of the "low" examples are still well above 0; it's the *direction relative to LLaMA and semantic* that matters. Mean-centering compresses the random-pair floor to ~0.26, which is the geometry the distilled model will be trained against.
 
 All per-category divergences are statistically significant (p < 0.001). Permutation test p=0.0000.
 
