@@ -34,10 +34,10 @@ All per-category divergences are statistically significant (p < 0.001). Permutat
 
 ## Next steps
 
-1. **Region-specific pooling** — instead of averaging all 20,484 brain vertices, pool within specific brain regions (prefrontal for cognitive load, limbic for emotion, motor cortex for sensorimotor). Should recover signals that whole-brain averaging drowns out (especially emotional arousal, which underperforms with mean pooling). Determines whether the distilled model outputs a structured embedding (per-region scores) or a single vector.
-2. **Pooling method ablation** — compare mean, variance, max, and z-scored pooling (both whole-brain and per-region). Selects the best input representation for the distilled model.
-3. **Distilled embedding model** — train a small, fast model that approximates TRIBE's cognitive similarity in milliseconds without needing a 40GB GPU.
-4. **Downstream evaluation** — validate on human behavioral data (reading times, eye-tracking) to prove the signal is useful, not just different.
+1. **Downstream validation** *(next)* — Round 2 proved Cognix diverges from LLaMA, but not that the divergence is useful. Test whether mean-pooled brain vectors predict per-word reading times on an eye-tracking corpus (Provo / Dundee / GECO) better than LLaMA and sentence-transformer baselines. Binary go/no-go for everything below.
+2. **Region-specific pooling** *(if validation passes)* — pool within specific brain regions (prefrontal for cognitive load, limbic for emotion, motor cortex for sensorimotor) to recover signals that whole-brain averaging drowns out, and decide whether the distilled model outputs a structured per-region embedding or a single vector.
+3. **Pooling method ablation** — compare mean, variance, max, and z-scored pooling (whole-brain and per-region) to pick the best input representation for the distilled model.
+4. **Distilled embedding model** — train a small, fast model that approximates TRIBE's cognitive similarity in milliseconds without a 40GB GPU.
 
 ## Pipeline
 
@@ -59,7 +59,7 @@ BrainCLIP and MindEye2 go **brain → content** (decoding what someone perceived
 
 ## Current status
 
-**Round 2 complete. Phase 3 (region-specific pooling) in progress.** See the [design doc](cognitive_similarity_embedding_system_design_v2.md) for full details.
+**Round 2 complete. Phase 3 (downstream validation on eye-tracking data) is next.** Region pooling is deferred until validation confirms Cognix has signal worth structuring. See the [design doc](cognitive_similarity_embedding_system_design_v2.md) for full details.
 
 ## Running the experiments
 

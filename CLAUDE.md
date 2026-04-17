@@ -64,7 +64,9 @@ Mean-centering drops random-pair brain sim from 0.812 to 0.264. Centered brain v
 
 ## Current status
 
-**Round 2 complete. Phase 3 (region-specific pooling) in progress.**
+**Round 2 complete. Phase 3 (downstream validation on human behavioral data) is next.**
+
+Region-specific pooling is deferred until downstream validation proves Cognix has signal worth structuring. Round 2 answered "does brain ≠ LLaMA?" (yes, r=0.44) but not "is the divergence useful?" Region pooling shapes architecture; it doesn't prove value.
 
 ## Dev setup
 
@@ -84,41 +86,40 @@ Mean-centering drops random-pair brain sim from 0.812 to 0.264. Centered brain v
 
 HuggingFace token via Colab secrets (key icon > `HF_TOKEN`). Clone to `/content/tribev2-repo` (not `/content/tribev2`) to avoid import conflicts.
 
-## Phase 3: Region-specific pooling (in progress)
+## Phase 3: Downstream validation (next)
 
-Mean pooling averages all 20,484 vertices equally, drowning localized signals. Emotional arousal (Brain−LLaMA = −0.070) is the clearest failure — emotion processing lives in ~500 limbic vertices that get diluted by 19,984 others.
+Round 2 proved divergence (r=0.44 brain vs LLaMA). It did not prove the divergence is *useful*. Without an external signal to ground against, every downstream phase is built on a circular foundation: handcrafted pairs designed to diverge confirm divergence. The smallest possible test of usefulness comes first.
 
 ### Approach
 
-1. **Map vertices to regions.** Load Destrieux atlas (74 regions/hemisphere, 148 total) for fsaverage5 via nilearn. Produces a (20484,) label array mapping each vertex to a region.
+1. **Pick an eye-tracking corpus** (Provo, Dundee, or GECO). Each gives per-word fixation durations on naturalistic text — a noisy but real measure of cognitive processing demand.
 
-2. **Group regions into cognitive categories.** Six groups based on neuroscience literature:
-   - **Prefrontal** (cognitive load): superior/middle/inferior frontal gyri, orbital cortex
-   - **Limbic** (emotional arousal): cingulate, parahippocampal, insula
-   - **Motor** (sensorimotor): precentral, postcentral, paracentral
-   - **Parietal** (spatial): superior/inferior parietal, precuneus, intraparietal
-   - **Temporal** (language/narrative): superior/middle/inferior temporal, Heschl's
-   - **Visual** (spatial scenes): occipital, cuneus, calcarine, fusiform
+2. **Define the test.** For a held-out passage, predict per-region reading time (or surprisal-residualized reading time) from text features. Compare three feature sources:
+   - sentence-transformers embedding (semantic baseline)
+   - LLaMA 3.2-3B last hidden state (LLM baseline)
+   - TRIBE brain vector, mean-pooled (Cognix)
 
-3. **Compute per-region similarity.** For each pair, extract the vertices for a given region from both pooled vectors and compute cosine similarity on the sub-vectors.
+3. **Evaluation.** R² (or AUC for above-/below-median fixations) on held-out subjects. The question is binary: does Cognix beat *both* baselines, or not?
 
-4. **Test hypotheses:**
-   - Does limbic-only similarity recover emotional arousal?
-   - Does prefrontal-only similarity best separate cognitive load?
-   - Does motor-only similarity best capture sensorimotor?
-   - Which regions diverge most from LLaMA?
+4. **Decision gate.**
+   - If Cognix wins → structural work (region pooling, distilled model) is justified.
+   - If Cognix loses → the divergence is real but not behaviorally useful. Re-examine before building further.
 
-5. **Determine embedding structure.** If regions cleanly separate cognitive dimensions → structured embedding with per-dimension scores. If not → black box embedding.
+Uses cached pooled vectors and a few hundred MB of public eye-tracking data. CPU only. Notebook: TBD.
 
-Uses cached pooled vectors (20484,) — no raw tensors or GPU needed. Notebook: `03_r3_region_pooling.ipynb`.
+## Phase 4: Region-specific pooling (deferred)
 
-## Phase 4: Distilled cognitive embedding model
+Only run after Phase 3 validates. Mean pooling drowns localized signals (emotional arousal Brain−LLaMA = −0.070 is the clearest case). If Phase 3 shows Cognix has downstream value, region pooling becomes the architectural choice for Phase 5: structured per-region embedding vs single vector.
 
-Train a projection head (MLP) on frozen LLaMA features using TRIBE brain similarities as supervision (contrastive learning). Architecture depends on Phase 3 results:
-- If region pooling works: per-region heads → structured embedding with interpretable cognitive dimension scores
-- If region pooling doesn't work: single MLP → black box 512-d cognitive embedding
+When run, must include: per-region mean-centering (Round 2 showed this is essential), discrimination AUC vs random_baseline (not just argmax), size-matched random-vertex controls, and a label-shuffle null. Note that the amygdala — central to emotional arousal — is subcortical and not on the fsaverage5 surface.
 
-Train on ~1.7M pairs from cached vectors (CPU, minutes). Evaluate on downstream task (reading times / eye-tracking) vs. LLaMA and semantic baselines.
+## Phase 5: Distilled cognitive embedding model
 
-## Phase 5: Applications
-Cognitive readability scoring, cognitively-targeted advertising, cross-topic similarity, AI alignment evaluation, multimodal extension, knowledge distillation to standalone small transformer.
+Train a projection head (MLP) on frozen LLaMA features using TRIBE brain similarities as supervision (contrastive learning). Architecture depends on Phase 4:
+- If region pooling works: per-region heads → structured embedding
+- If not: single MLP → 512-d cognitive embedding
+
+Train on ~1.7M pairs from cached vectors (CPU, minutes). Re-evaluate on the Phase 3 downstream task.
+
+## Phase 6: Applications
+Cognitive readability scoring, cross-topic similarity, AI alignment evaluation, multimodal extension, knowledge distillation to standalone small transformer.

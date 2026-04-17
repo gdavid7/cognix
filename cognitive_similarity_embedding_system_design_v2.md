@@ -233,21 +233,38 @@ Emotional arousal is the only category where brain sim < LLaMA sim. Hypothesis: 
 
 ## 8. Next phases
 
-The LLaMA baseline passed and divergence holds at scale. The next phases build toward a fast, standalone cognitive embedding model.
+The LLaMA baseline passed and divergence holds at scale. **What's still unproven is whether the divergence is useful.** Round 2's evidence is internal (hand-designed pairs, derived metrics). The next phase grounds the project against an external behavioral signal before any structural work.
 
-### Phase 3: Region-specific pooling (days, runs on cached data)
+### Phase 3: Downstream validation on eye-tracking (next)
 
-Mean pooling averages all 20,484 vertices equally. This likely drowns localized signals — emotional processing is concentrated in limbic regions (~500 vertices), so averaging with 19,984 irrelevant vertices dilutes it. This may explain why emotional arousal underperforms in preliminary results while spatial/sensorimotor categories (which involve larger cortical areas) work well.
+Cognix says brain vectors capture cognitive processing characteristics that LLaMA doesn't. The honest test is whether they predict an external measure of cognitive processing — per-word reading time on naturalistic text.
 
 Steps:
-- Map fsaverage5 vertices to brain regions using Desikan-Killiany or Schaefer atlas
-- Pool within each region separately (prefrontal, limbic, motor cortex, parietal, etc.)
-- Test whether region-specific vectors recover categories that whole-brain mean pooling misses
-- Compare per-region similarity against LLaMA to identify which regions add value beyond LLaMA
+- Pick an eye-tracking corpus: Provo, Dundee, or GECO. All public, all have per-word fixation durations from many subjects on natural reading.
+- For each fixation point, build a small text window around it. Compute three feature representations of the window: sentence-transformer embedding, LLaMA 3.2-3B mean-pooled hidden state, TRIBE pooled brain vector (cached).
+- Predict reading time (or surprisal-residualized reading time) from each feature source. Hold out subjects.
+- Report R² (or AUC for above-/below-median) for all three feature sources side by side.
 
-This uses the cached raw tensors `(T, 20484)` — no GPU needed. Runs in seconds on a laptop.
+Decision gate:
+- If Cognix beats both baselines → divergence is behaviorally useful. Phase 4+ is justified.
+- If Cognix loses or ties → the divergence is real but not useful for predicting human behavior. Stop and re-examine before building a distilled model on a signal that doesn't translate.
 
-### Phase 4: Distilled cognitive embedding model (1-2 weeks)
+Cost: cached vectors + a few hundred MB of public eye-tracking data. CPU only. ~1 day of work.
+
+### Phase 4: Region-specific pooling (deferred)
+
+Only if Phase 3 validates. Mean pooling averages 20,484 vertices equally and drowns localized signals — emotional arousal (Brain−LLaMA = −0.070) is the clearest case. Whether region pooling rescues it determines the Phase 5 architecture: structured per-region embedding vs. single vector.
+
+When run, must include:
+- Per-region mean-centering. Round 2 showed mean-centering compresses random-pair similarity from 0.812 to 0.264 and lifts brain-vs-semantic correlation from 0.43 to 0.55. Each region has its own baseline; raw cosine on sub-vectors will be dominated by it.
+- Discrimination AUC vs. random_baseline pairs, not argmax of mean similarity. Higher mean sim doesn't mean a region "captures" a dimension; it may just be uniformly active.
+- Size-matched random-vertex-subset controls. Different regions have different vertex counts, which changes cosine baseline distributions.
+- Label-shuffle null over the region→category mapping. With 6 regions and 4 categories, ~0.67 matches happen by chance.
+- Honest acknowledgment that the amygdala — central to emotional arousal — is subcortical and not on the fsaverage5 surface. Limbic pooling may fail for that reason alone.
+
+Cost: cached pooled vectors `(20484,)` only. No GPU.
+
+### Phase 5: Distilled cognitive embedding model (1–2 weeks)
 
 TRIBE is too slow for real use (~38 sec/text, 40GB GPU). The goal is a small, fast model that approximates TRIBE's similarity geometry:
 
@@ -259,17 +276,16 @@ The projection head (a small MLP or transformer) is trained via contrastive lear
 
 Training data: ~1.7 million possible pairings from 1,835 cached texts, each with precomputed brain similarity. Training runs on CPU in minutes (small MLP on cached vectors).
 
-Evaluation: the benchmark dataset (923 labeled pairs) serves as a held-out test set. Compare Cognix embeddings vs. raw LLaMA vs. sentence-transformers on AUC for separating cognitively similar from cognitively different pairs.
+Evaluation: re-run the Phase 3 eye-tracking test on the distilled embeddings. The bar is to match TRIBE's downstream performance at a fraction of the cost.
 
-If region-specific pooling helps in Phase 3, the projection head trains on region-decomposed features rather than whole-brain vectors — a region-aware cognitive embedding.
+If Phase 4 region pooling helps, the projection head trains on region-decomposed features — a region-aware cognitive embedding with interpretable per-region scores.
 
-### Phase 5: Applications and extensions
+### Phase 6: Applications and extensions
 
-These build on a working embedding model. Each requires its own validation.
+These build on a working, validated embedding model. Each requires its own validation.
 
 - Cognitive readability scoring — quantify how demanding a text is to process
 - Cross-topic similarity based on processing demands rather than meaning
-- Cognitively-targeted advertising — serve ads matching the cognitive profile a user engages with (emotional intensity, sensorimotor engagement, narrative tension) rather than just the topic
 - AI alignment evaluation via comparison to brain-predicted representations
 - Multimodal cognitive similarity using TRIBE's video/audio pathways
 - Knowledge distillation from the LLaMA-based model to a smaller standalone transformer
