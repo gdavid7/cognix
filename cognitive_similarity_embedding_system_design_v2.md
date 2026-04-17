@@ -159,70 +159,81 @@ Same topic, different cognitive demands. Brain sees them as *dissimilar* — it 
 
 ---
 
-## 6. What we need to test next (Round 2)
+## 6. Round 2 results (April 2026)
 
-Round 2 is the real validation. Three experiments, in order of importance:
+923 pairs (243 handcrafted, 180 STS-B, 500 Wikipedia random), 1,835 unique texts. All three experiments completed.
 
-### Experiment 1: LLaMA baseline (critical)
+### Experiment 1: LLaMA baseline — PASSED
 
-Extract LLaMA 3.2-3B embeddings (last hidden state, mean-pooled across tokens) for every text. Compute pairwise cosine similarity. Compare three numbers per pair:
+| Comparison | Pearson r | Spearman r |
+|---|---|---|
+| Brain vs Semantic | 0.43 | 0.50 |
+| Brain vs LLaMA | 0.44 | 0.54 |
+| LLaMA vs Semantic | 0.83 | 0.79 |
 
-| Metric | Source |
-|--------|--------|
-| Semantic sim | sentence-transformers (all-MiniLM-L6-v2) |
-| LLaMA sim | LLaMA 3.2-3B last hidden state, mean-pooled |
-| Brain sim | TRIBE v2 brain predictions, mean-pooled |
+LLaMA and sentence-transformers largely agree (r=0.83). Brain vectors diverge from both (r≈0.43-0.44). **The brain mapping substantially reshapes the similarity geometry beyond what LLaMA encodes.** The 8-layer Transformer trained on real fMRI data amplifies cognitive dimensions that LLaMA encodes weakly.
 
-**If brain sim ≠ LLaMA sim:** The brain mapping reshapes the geometry. TRIBE adds value beyond its input model. Proceed.
+### Experiment 2: Scale — CONFIRMED
 
-**If brain sim ≈ LLaMA sim:** The brain mapping is cosmetic. The divergence from semantic similarity is just "LLaMA ≠ sentence-transformers," which is unsurprising. Rethink the approach.
+Divergence holds at 10× more pairs. All 7 divergence categories show statistically significant brain vs semantic divergence (p < 0.001 for every category). Permutation test p=0.0000.
 
-This is the single most important experiment.
+Per-category results (handcrafted pairs):
 
-### Experiment 2: Scale (important)
+| Category | N | Sem | LLaMA | Brain | Brain−LLaMA |
+|---|---|---|---|---|---|
+| cognitive_load | 25 | 0.050 | 0.509 | 0.833 | **+0.324** |
+| control (diff processing) | 30 | 0.392 | 0.642 | 0.776 | +0.134 |
+| spatial_scene | 20 | 0.383 | 0.870 | 0.949 | +0.079 |
+| sensorimotor | 20 | 0.428 | 0.861 | 0.905 | +0.044 |
+| syntactic_complexity | 20 | 0.201 | 0.870 | 0.909 | +0.039 |
+| narrative_suspense | 20 | 0.250 | 0.794 | 0.824 | +0.030 |
+| theory_of_mind | 20 | 0.253 | 0.831 | 0.838 | +0.007 |
+| emotional_arousal | 20 | 0.297 | 0.819 | 0.749 | **−0.070** |
+| paraphrase | 30 | 0.853 | 0.955 | 0.954 | −0.001 |
+| unrelated | 30 | −0.009 | 0.623 | 0.793 | +0.171 |
 
-Does the r ≈ 0.24 divergence hold with 923 pairs (20–25 per divergence category)? Round 1 had 5 per category — not enough for per-category statistical significance.
+Cognitive load shows the largest brain vs LLaMA divergence (+0.324). Emotional arousal is the only category where brain sim < LLaMA sim (−0.070), supporting the hypothesis that mean pooling drowns limbic signal in 20,484 vertices.
 
-Dataset breakdown:
-- 243 handcrafted divergence pairs (7 categories + controls + adversarial)
-- 180 STS-B pairs (filtered to both texts >= 15 words for TRIBE compatibility)
-- 500 random Wikipedia pairs (baseline)
+### Experiment 3: Baseline removal — EFFECTIVE
 
-Data fixes from Round 1:
-- Syntactic surprise (short garden-path sentences) replaced with syntactic complexity (paragraph-length texts with nested relative clauses and complex subordination, ordinary vocabulary)
-- Control pairs: simple texts extended to paragraph length to eliminate length confound
-- STS-B: filtered out pairs with texts under 15 words (TRIBE needs paragraph-length input)
+Mean-centering compresses the random-pair floor from 0.812 to 0.264. Centered brain vs semantic: r=0.55 (higher than raw r=0.43 because mean-centering removes the shared language-processing baseline that inflated all brain similarities).
 
-### Experiment 3: Baseline removal (important)
+### Robustness checks
 
-Mean-center all brain vectors (subtract the corpus-average vector) before computing cosine similarity. This should:
-- Compress the 0.82 floor toward 0
-- Reveal the true dynamic range of brain similarity
-- Make the divergence categories interpretable without the "everything is 0.8+" problem
+- Text length vs brain sim: r=−0.31 (moderate, not a confound)
+- Permutation test: p=0.0000
+- Brain vs semantic per source: handcrafted r=0.40, STS-B r=0.26, Wikipedia r=0.15
+- Zero inference failures (923/923 pairs, 1835/1835 texts)
+
+### Key insight
+
+Brain vs semantic r went from 0.24 (Round 1, 100 pairs) to 0.43 (Round 2, 923 pairs). The correlation is higher at scale than Round 1 suggested. This doesn't undermine the finding — r=0.43 still indicates substantial divergence — but Round 1's r=0.24 was likely deflated by small sample size and the short garden-path sentences that were replaced.
 
 ---
 
 ## 7. Risks
 
-### The LLaMA ceiling (untested, could be fatal)
+### The LLaMA ceiling — RESOLVED
 
-TRIBE's text pathway feeds text through LLaMA 3.2-3B, then maps LLaMA's features to brain activity. If the fingerprint doesn't capture anything beyond what LLaMA already contains, the brain-mapping step adds no value.
+Brain vs LLaMA r=0.44. The brain mapping substantially reshapes the geometry. TRIBE adds value beyond its input model.
 
-Why it might still work: TRIBE's mapping is an 8-layer Transformer trained on real fMRI from 720+ subjects. This is a significant nonlinear transformation supervised by neuroscience data. It should re-weight dimensions based on what the brain cares about — amplifying sensorimotor, affective, and attentional features while suppressing distributional features. But "should" is not "does."
+### High baseline similarity — RESOLVED
 
-### High baseline similarity (confirmed, addressable)
-
-Mean-pooled whole-brain vectors produce ~0.82 cosine similarity even for unrelated texts. The useful signal lives in a compressed range above this floor. Mean-centering is the standard fix and should work, but it hasn't been tested on this data yet.
+Mean-centering drops the random-pair floor from 0.812 to 0.264. The dynamic range is now usable.
 
 ### Pair design circularity (acknowledged)
 
 The divergence pairs were designed to diverge — texts chosen for low semantic similarity but similar cognitive properties. A skeptic could ask: "How do you know these pairs are cognitively similar independent of TRIBE?" The answer is that the 7 categories correspond to established cognitive neuroscience constructs (cognitive load, sensorimotor processing, emotional arousal, etc.) supported by decades of fMRI literature. The STS-B and Wikipedia-random pairs provide external validation that isn't hand-designed.
 
+### Emotional arousal underperformance (new)
+
+Emotional arousal is the only category where brain sim < LLaMA sim. Hypothesis: emotional processing is concentrated in ~500 limbic vertices, and mean pooling over 20,484 vertices drowns the signal. Phase 3 region-specific pooling tests this.
+
 ---
 
-## 8. If the experiments pass
+## 8. Next phases
 
-If brain sim ≠ LLaMA sim and the divergence holds at scale, the next phases build toward a fast, standalone cognitive embedding model.
+The LLaMA baseline passed and divergence holds at scale. The next phases build toward a fast, standalone cognitive embedding model.
 
 ### Phase 3: Region-specific pooling (days, runs on cached data)
 

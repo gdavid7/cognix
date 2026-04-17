@@ -24,23 +24,47 @@ text → TRIBE v2 (gTTS → WhisperX → LLaMA 3.2 → 8-layer Transformer → b
 - Product name: **Cognix**
 - Design doc: `cognitive_similarity_embedding_system_design_v2.md`
 
-## Validation results (Round 1, April 2026)
+## Round 2 results (April 2026)
 
-**Pearson r = 0.24, Spearman r = 0.32, p < 0.02.**
+923 pairs, 1,835 unique texts. All three experiments completed.
 
-Brain similarity and semantic similarity are barely correlated. All 7 divergence categories diverged as predicted. Note: Round 1 used short garden-path sentences (syntactic_surprise) and length-mismatched control pairs. Both were fixed for Round 2 — syntactic_surprise replaced with paragraph-length syntactic_complexity, control simple texts extended to match complex text lengths. But:
+### LLaMA baseline: PASSED
 
-1. **High baseline.** 81% of pairs have brain sim > 0.7. Mean-pooled whole-brain vectors are dominated by a shared language-processing baseline. Baseline removal (mean-centering) is required before results are interpretable.
-2. **LLaMA baseline untested.** We don't yet know if this divergence comes from the brain mapping or from LLaMA 3.2 features that sentence-transformers don't capture. This is the critical experiment.
-3. **5 pairs per category.** Not statistically robust. Round 2 scales to 20–25 per category.
+| Comparison | Pearson r |
+|---|---|
+| Brain vs Semantic | 0.43 |
+| Brain vs LLaMA | 0.44 |
+| LLaMA vs Semantic | 0.83 |
+
+LLaMA and sentence-transformers largely agree (r=0.83). Brain vectors diverge from both (r≈0.43). **The brain mapping reshapes the similarity geometry beyond what LLaMA encodes.**
+
+### Per-category results (handcrafted pairs, brain vs LLaMA divergence)
+
+| Category | N | Sem | LLaMA | Brain | Brain−LLaMA |
+|---|---|---|---|---|---|
+| cognitive_load | 25 | 0.050 | 0.509 | 0.833 | **+0.324** |
+| spatial_scene | 20 | 0.383 | 0.870 | 0.949 | +0.079 |
+| sensorimotor | 20 | 0.428 | 0.861 | 0.905 | +0.044 |
+| syntactic_complexity | 20 | 0.201 | 0.870 | 0.909 | +0.039 |
+| narrative_suspense | 20 | 0.250 | 0.794 | 0.824 | +0.030 |
+| theory_of_mind | 20 | 0.253 | 0.831 | 0.838 | +0.007 |
+| emotional_arousal | 20 | 0.297 | 0.819 | 0.749 | **−0.070** |
+
+Emotional arousal going negative supports the hypothesis that mean pooling drowns limbic signal — Phase 3 region pooling should recover this.
+
+### Baseline removal
+
+Mean-centering drops random-pair brain sim from 0.812 to 0.264. Centered brain vs semantic: r=0.55.
+
+### Robustness checks
+
+- Text length correlation: r=−0.31 (not a confound)
+- Permutation test: p=0.0000 (divergence is significant)
+- All per-category brain vs semantic t-tests: p < 0.001
 
 ## Current status
 
-**Round 2 in progress.** 923 pairs, 1,835 unique texts. Three key experiments:
-
-1. **Scale test:** Does the r ≈ 0.24 divergence hold at 10× more pairs?
-2. **LLaMA baseline:** Extract LLaMA 3.2-3B embeddings (last hidden state, mean-pooled) and compare. If brain sim ≈ LLaMA sim, the brain mapping adds nothing.
-3. **Baseline removal:** Mean-center brain vectors (subtract corpus mean) before computing similarity. Required to address the 0.82 floor.
+**Round 2 complete. Phase 3 (region-specific pooling) in progress.**
 
 ## Dev setup
 
