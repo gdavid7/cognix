@@ -36,7 +36,7 @@ And examples where brain similarity goes the other way — the geometry isn't a 
 |--------|--------|-------------|-----------|-----------|
 | Plain-language description of dogs as loyal pets | Technical paper on *Canis lupus* domestication via mitochondrial DNA divergence | 0.15 | 0.63 | 0.65 |
 | Mother screams as stroller rolls toward subway tracks | Widower visits late wife's grave every Sunday for eleven years | 0.26 | 0.80 | 0.39 |
-| Two news ledes describing the same Gillespie/CBS letter, near-paraphrased | (other near-paraphrase of same fact) | 0.80 | 0.82 | 0.65 |
+| Gillespie sent a letter to CBS President Leslie Moonves asking for a historical review or a disclaimer | Republican National Committee Chairman Ed Gillespie issued a letter Friday to CBS Television President Leslie Moonves | 0.80 | 0.82 | 0.65 |
 
 The first row is the "control" pattern — same topic, very different processing demands. Brain rates them moderately similar (same domain) but well below the ~0.85 typical brain score, showing the metric distinguishes processing complexity within a topic. The second is the emotional-arousal anomaly: two grief-themed texts that LLaMA rates as very similar, but brain rates *less* similar than chance — evidence that mean pooling drowns the limbic signal in 20,484 vertices, and the main reason region-specific pooling is on the roadmap. The third shows brain disagreeing downward on near-paraphrases.
 
