@@ -84,13 +84,41 @@ Mean-centering drops random-pair brain sim from 0.812 to 0.264. Centered brain v
 
 HuggingFace token via Colab secrets (key icon > `HF_TOKEN`). Clone to `/content/tribev2-repo` (not `/content/tribev2`) to avoid import conflicts.
 
-## After Round 2 (gated on LLaMA baseline results)
+## Phase 3: Region-specific pooling (in progress)
 
-### Phase 3: Region-specific pooling
-Mean pooling drowns localized signals (limbic emotion in 500 of 20,484 vertices). Map vertices to brain regions via Desikan-Killiany atlas, pool per region. Test whether region-specific vectors recover categories that mean pooling misses (especially emotional arousal). Runs on cached raw tensors, no GPU needed, seconds on Mac.
+Mean pooling averages all 20,484 vertices equally, drowning localized signals. Emotional arousal (Brain−LLaMA = −0.070) is the clearest failure — emotion processing lives in ~500 limbic vertices that get diluted by 19,984 others.
 
-### Phase 4: Distilled cognitive embedding model
-Train a projection head (MLP) on frozen LLaMA features using TRIBE brain similarities as supervision (contrastive learning). Goal: fast 512-d cognitive embedding that runs in milliseconds without TRIBE. Train on ~1.7M pairs from cached vectors (CPU, minutes). Evaluate on held-out benchmark pairs (AUC: does Cognix separate cognitively similar from different better than raw LLaMA?).
+### Approach
 
-### Phase 5: Applications
+1. **Map vertices to regions.** Load Destrieux atlas (74 regions/hemisphere, 148 total) for fsaverage5 via nilearn. Produces a (20484,) label array mapping each vertex to a region.
+
+2. **Group regions into cognitive categories.** Six groups based on neuroscience literature:
+   - **Prefrontal** (cognitive load): superior/middle/inferior frontal gyri, orbital cortex
+   - **Limbic** (emotional arousal): cingulate, parahippocampal, insula
+   - **Motor** (sensorimotor): precentral, postcentral, paracentral
+   - **Parietal** (spatial): superior/inferior parietal, precuneus, intraparietal
+   - **Temporal** (language/narrative): superior/middle/inferior temporal, Heschl's
+   - **Visual** (spatial scenes): occipital, cuneus, calcarine, fusiform
+
+3. **Compute per-region similarity.** For each pair, extract the vertices for a given region from both pooled vectors and compute cosine similarity on the sub-vectors.
+
+4. **Test hypotheses:**
+   - Does limbic-only similarity recover emotional arousal?
+   - Does prefrontal-only similarity best separate cognitive load?
+   - Does motor-only similarity best capture sensorimotor?
+   - Which regions diverge most from LLaMA?
+
+5. **Determine embedding structure.** If regions cleanly separate cognitive dimensions → structured embedding with per-dimension scores. If not → black box embedding.
+
+Uses cached pooled vectors (20484,) — no raw tensors or GPU needed. Notebook: `03_r3_region_pooling.ipynb`.
+
+## Phase 4: Distilled cognitive embedding model
+
+Train a projection head (MLP) on frozen LLaMA features using TRIBE brain similarities as supervision (contrastive learning). Architecture depends on Phase 3 results:
+- If region pooling works: per-region heads → structured embedding with interpretable cognitive dimension scores
+- If region pooling doesn't work: single MLP → black box 512-d cognitive embedding
+
+Train on ~1.7M pairs from cached vectors (CPU, minutes). Evaluate on downstream task (reading times / eye-tracking) vs. LLaMA and semantic baselines.
+
+## Phase 5: Applications
 Cognitive readability scoring, cognitively-targeted advertising, cross-topic similarity, AI alignment evaluation, multimodal extension, knowledge distillation to standalone small transformer.
